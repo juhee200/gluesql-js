@@ -144,6 +144,83 @@
           </p>
           <div id="experiment-actions" class="experiment-actions"></div>
           <div id="notice" class="notice" role="status" hidden></div>
+          <section
+            id="opfs-live"
+            class="opfs-live"
+            aria-labelledby="opfs-title"
+            hidden
+          >
+            <div class="opfs-heading">
+              <h4 id="opfs-title">브라우저 안의 실제 파일</h4>
+              <button id="opfs-refresh" class="text-button">
+                파일 다시 읽기
+              </button>
+            </div>
+            <div class="opfs-path">
+              <span aria-hidden="true">⌂</span><span id="opfs-origin"></span
+              ><span>/ OPFS</span>
+            </div>
+            <div class="opfs-file">
+              <span class="opfs-file-icon" aria-hidden="true">▱</span>
+              <div>
+                <strong id="opfs-filename"></strong>
+                <p id="opfs-presence" role="status">파일을 확인하고 있어요.</p>
+              </div>
+              <span class="opfs-file-badge">redb</span>
+            </div>
+            <p id="opfs-error" class="opfs-error" role="status" hidden></p>
+            <div id="opfs-snapshot" hidden>
+              <dl class="opfs-metrics">
+                <div>
+                  <dt>실제 파일 크기</dt>
+                  <dd id="opfs-size"></dd>
+                  <small id="opfs-size-bytes"></small>
+                </div>
+                <div>
+                  <dt>기준 이후 바뀐 바이트</dt>
+                  <dd id="opfs-changed-count"></dd>
+                  <small>미리보기 범위 안에서 비교</small>
+                </div>
+                <div>
+                  <dt>파일 수정 시각</dt>
+                  <dd id="opfs-modified"></dd>
+                  <small id="opfs-observed"></small>
+                </div>
+              </dl>
+              <div class="opfs-map-heading">
+                <strong>파일 바이트 지도</strong><span id="opfs-range"></span>
+              </div>
+              <div
+                id="opfs-blocks"
+                class="opfs-blocks"
+                role="group"
+                aria-label="실제 파일의 1 KiB 블록 선택"
+              ></div>
+              <div class="opfs-legend">
+                <span><i class="zero"></i>모두 0</span
+                ><span><i class="data"></i>0 아닌 값 포함</span
+                ><span><i class="changed"></i>기준과 달라짐</span>
+              </div>
+              <div class="opfs-comparison">
+                <span id="opfs-baseline"></span
+                ><button id="opfs-rebase" class="text-button">
+                  현재를 비교 기준으로
+                </button>
+              </div>
+              <details id="opfs-byte-details" class="opfs-byte-details">
+                <summary>선택한 블록의 실제 바이트 보기</summary>
+                <p id="opfs-byte-label"></p>
+                <pre id="opfs-bytes"></pre>
+              </details>
+              <p class="opfs-explainer">
+                칸을 누르면 실제 바이트를 볼 수 있어요. 파일 앞쪽 최대 64 KiB만
+                읽으며, 각 칸은 1 KiB입니다. 색은 메타데이터를 포함한 바이트
+                비교 결과로, DB의 여유 공간이나 실제 디스크 블록을 뜻하지
+                않습니다. 조회에도 DB 메타데이터가 바뀔 수 있고, redb가 공간을
+                재사용하면 저장해도 파일 크기는 같을 수 있어요.
+              </p>
+            </div>
+          </section>
           <div class="editor">
             <div class="editor-toolbar">
               <span><span class="code-dot"></span>query.sql</span>

@@ -1052,6 +1052,248 @@ footer {
   font-size: 12px;
   z-index: 8;
 }
+.opfs-live {
+  border: 1px solid #d5e1f4;
+  border-radius: 9px;
+  margin: 0 0 18px;
+  padding: 16px;
+  background: #f9fbff;
+  min-width: 0;
+}
+.opfs-heading,
+.opfs-path,
+.opfs-file,
+.opfs-map-heading,
+.opfs-comparison,
+.opfs-legend {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.opfs-heading,
+.opfs-map-heading,
+.opfs-comparison {
+  justify-content: space-between;
+}
+.opfs-heading h4 {
+  font-size: 12px;
+  margin: 0;
+}
+.opfs-heading .text-button,
+.opfs-comparison .text-button {
+  color: #476bc5;
+}
+.opfs-path {
+  margin-top: 13px;
+  font-size: 9px;
+  color: #71829d;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+.opfs-file {
+  margin: 13px 0 16px;
+  min-width: 0;
+}
+.opfs-file > div {
+  min-width: 0;
+}
+.opfs-file strong {
+  font: 11px var(--mono);
+  overflow-wrap: anywhere;
+}
+.opfs-file p {
+  font-size: 9px;
+  color: var(--teal);
+  margin-top: 5px;
+}
+.opfs-file-icon {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 40px;
+  border: 1px solid #cfdcf5;
+  border-radius: 5px;
+  background: white;
+  font-size: 25px;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+.opfs-file-badge {
+  margin-left: auto;
+  font: 9px var(--mono);
+  color: #7691c2;
+}
+.opfs-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  margin: 0 0 17px;
+  gap: 14px;
+  padding: 13px 0;
+  border-top: 1px solid #e1e8f5;
+  border-bottom: 1px solid #e1e8f5;
+}
+.opfs-metrics dt {
+  font-size: 9px;
+  color: #6a7e9d;
+}
+.opfs-metrics dd {
+  margin: 7px 0 3px;
+  font-size: 18px;
+  color: #2a4885;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+.opfs-metrics small {
+  display: block;
+  font-size: 8px;
+  color: #71829d;
+}
+.opfs-metrics #opfs-modified {
+  font-size: 13px;
+  line-height: 25px;
+  letter-spacing: -0.3px;
+}
+.opfs-map-heading {
+  margin-bottom: 10px;
+  font-size: 10px;
+  flex-wrap: wrap;
+}
+.opfs-map-heading strong {
+  font-weight: 550;
+}
+.opfs-map-heading > span {
+  font-size: 9px;
+  color: #71829d;
+}
+.opfs-blocks {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 4px;
+}
+.opfs-block {
+  border-radius: 3px;
+  min-width: 0;
+  height: 22px;
+  font: 8px var(--mono);
+  border: 1px solid transparent;
+}
+.opfs-block.zero {
+  background: #edf1f7;
+  color: #71809a;
+}
+.opfs-block.data {
+  background: #c7d8fa;
+  color: #375e9d;
+}
+.opfs-block.changed {
+  background: #ffc985;
+  color: #7b4400;
+  border-color: #f4a943;
+}
+.opfs-block[aria-pressed='true'] {
+  outline: 2px solid #3b5fb1;
+  outline-offset: 1px;
+}
+.opfs-block:hover:not(:disabled) {
+  border-color: #3b5fb1;
+  color: #1a2742;
+}
+.opfs-legend {
+  flex-wrap: wrap;
+  font-size: 9px;
+  color: #617595;
+  gap: 14px;
+  margin: 10px 0 14px;
+}
+.opfs-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.opfs-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.opfs-legend .zero {
+  background: #e4eaf3;
+}
+.opfs-legend .data {
+  background: #b5cbf5;
+}
+.opfs-legend .changed {
+  background: #ffc985;
+}
+.opfs-comparison {
+  font-size: 9px;
+  color: #74839d;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.opfs-byte-details {
+  margin-top: 12px;
+  font-size: 10px;
+}
+.opfs-byte-details summary {
+  cursor: pointer;
+  color: #536f9e;
+}
+.opfs-byte-details p {
+  font-size: 9px;
+  color: #71829d;
+  margin-top: 10px;
+}
+.opfs-byte-details pre {
+  overflow: auto;
+  background: white;
+  padding: 10px;
+  border: 1px solid #e1e8f5;
+  border-radius: 5px;
+  font: 10px/1.8 var(--mono);
+  color: #425d8d;
+}
+.opfs-explainer {
+  font-size: 9px;
+  line-height: 1.7;
+  color: #74839d;
+  margin-top: 12px;
+}
+.opfs-error {
+  font-size: 10px;
+  color: #a22c3c;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  .opfs-live {
+    padding: 12px;
+  }
+  .opfs-file strong {
+    font-size: 10px;
+  }
+  .opfs-file-badge {
+    display: none;
+  }
+  .opfs-metrics {
+    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .opfs-metrics > div:last-child {
+    grid-column: 1/-1;
+  }
+  .opfs-metrics #opfs-modified {
+    line-height: 18px;
+  }
+  .opfs-blocks {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+  .opfs-block {
+    height: 24px;
+    font-size: 9px;
+  }
+  .opfs-legend {
+    gap: 10px;
+  }
+}
 @media (min-width: 1500px) {
   .lab {
     grid-template-columns: 245px minmax(0, 1fr) 275px;

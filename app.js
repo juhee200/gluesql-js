@@ -1,3 +1,5 @@
+import { createOpfsInspector } from './opfs-inspector.js';
+
 const $ = (selector) => document.querySelector(selector);
 const mode = ['memory', 'opfs', 'shared'].includes(
   new URLSearchParams(location.search).get('mode'),
@@ -5,6 +7,7 @@ const mode = ['memory', 'opfs', 'shared'].includes(
   ? new URLSearchParams(location.search).get('mode')
   : 'memory';
 const namespace = `gluesql-lab-${mode}-v1`;
+const fileInspector = mode === 'memory' ? null : createOpfsInspector(namespace);
 const noteQuery =
   'SELECT author, message, created_at\nFROM Note\nORDER BY created_at DESC;';
 const contributionQuery =
@@ -299,6 +302,8 @@ async function runQuery(sql = $('#sql').value) {
   } catch (error) {
     showQueryError(error);
   } finally {
+    // Multi-statement SQL may have committed writes before a later statement failed.
+    await fileInspector?.refresh();
     busy = false;
     updateControls();
   }
@@ -330,6 +335,7 @@ async function saveNote() {
   } catch (error) {
     showQueryError(error);
   } finally {
+    if (!saved) await fileInspector?.refresh();
     busy = false;
     updateControls();
   }
@@ -340,8 +346,11 @@ async function saveNote() {
   }
 }
 async function pollNotes() {
-  if (busy || closed || !db || document.hidden || $('#sql').value !== noteQuery)
+  if (busy || closed || !db || document.hidden) return;
+  if ($('#sql').value !== noteQuery) {
+    await fileInspector?.refresh();
     return;
+  }
   busy = true;
   updateControls();
   try {
@@ -364,6 +373,7 @@ async function pollNotes() {
       );
     }
   } finally {
+    await fileInspector?.refresh();
     busy = false;
     updateControls();
   }
@@ -456,6 +466,7 @@ function configure() {
   updateControls();
 }
 async function connect() {
+  await fileInspector?.checkBeforeConnect();
   const engineBase = new URL(
     document.documentElement.dataset.engineBase,
     location.href,
@@ -532,6 +543,7 @@ async function connect() {
     notice(
       '공유된 SQL을 불러왔습니다. 내용을 확인한 뒤 SQL 실행을 눌러주세요. 데이터는 공유되지 않습니다.',
     );
+    await fileInspector?.refresh();
   } else await runQuery();
   if (mode === 'shared') pollTimer = setInterval(pollNotes, 2000);
 }
@@ -618,7 +630,7 @@ addEventListener('pagehide', () => {
 addEventListener('pageshow', (event) => {
   if (event.persisted) location.reload();
 });
-connect().catch((error) => {
+connect().catch(async (error) => {
   db?.terminate?.();
   db?.free?.();
   db = null;
@@ -631,4 +643,5 @@ connect().catch((error) => {
   );
   log(String(error.message ?? error), true);
   updateControls();
+  await fileInspector?.refresh();
 });
