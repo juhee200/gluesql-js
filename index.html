@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko" data-engine-base="./engine/">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#385ee8" />
+    <meta
+      name="description"
+      content="SQL 실행부터 OPFS 영구 저장, 멀티탭 공유까지. GlueSQL.js의 동작을 브라우저에서 직접 실험해보세요."
+    />
+    <title>GlueSQL Lab — 브라우저 안의 데이터베이스</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">실험실로 이동</a>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="GlueSQL Lab 처음으로"
+        ><span class="brand-mark" aria-hidden="true">g<span>·</span></span
+        ><strong>GlueSQL<span class="brand-lab"> Lab</span></strong
+        ><span class="version">v0.20.0</span></a
+      >
+      <nav aria-label="메인 메뉴">
+        <a class="nav-active" href="#workspace">실험실</a
+        ><a href="#contributions">기여 이야기</a
+        ><a
+          href="https://github.com/gluesql/gluesql-js"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub <span aria-hidden="true">↗</span></a
+        >
+      </nav>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="title">
+        <div>
+          <div class="intro-tag">
+            <span class="status-dot"></span>설치 없이, 지금 이 브라우저에서
+          </div>
+          <h1 id="title">브라우저 안에<br />데이터베이스를 붙이다.</h1>
+          <p>
+            SQL을 실행하고, 탭을 닫고, 다시 열어보세요.<br />GlueSQL.js에 더한
+            저장과 연결의 변화를 직접 실험합니다.
+          </p>
+        </div>
+        <div class="intro-visual" aria-hidden="true">
+          <div class="browser-sketch">
+            <div class="sketch-chrome">
+              <i></i><i></i><i></i><span>your browser</span>
+            </div>
+            <div class="sketch-code">
+              <span>await</span> db.query(<br />&nbsp;
+              <b>'SELECT possibilities<br />&nbsp;&nbsp; FROM browser;'</b
+              ><br />);
+            </div>
+            <div class="sketch-footer">
+              <span>Rust + WebAssembly</span><strong>SQL, right here.</strong>
+            </div>
+          </div>
+          <div class="file-chip">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            >
+              <ellipse cx="12" cy="5" rx="8" ry="3" />
+              <path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0" />
+            </svg>
+            <div>browser.db<small>내 기기에 저장</small></div>
+            <span class="checkmark">✓</span>
+          </div>
+        </div>
+      </section>
+      <div class="lab-heading">
+        <h2>직접 해보는 GlueSQL</h2>
+        <span>실제 WASM 엔진으로 실행됩니다</span>
+      </div>
+      <section class="lab" id="workspace" aria-label="GlueSQL 실험실">
+        <aside class="lab-sidebar">
+          <p class="sidebar-label">실험 선택</p>
+          <div class="experiment-list" role="group" aria-label="저장 방식 선택">
+            <button
+              class="experiment active"
+              data-mode="memory"
+              aria-pressed="true"
+            >
+              <span class="experiment-icon">⌘</span
+              ><span
+                ><strong>SQL 플레이그라운드</strong
+                ><small>메모리에서 가볍게 시작</small></span
+              ><span class="active-dot"></span>
+            </button>
+            <button class="experiment" data-mode="opfs" aria-pressed="false">
+              <span class="experiment-icon">▱</span
+              ><span
+                ><strong>새로고침해도 그대로</strong
+                ><small>OPFS 영구 저장</small></span
+              ><span class="active-dot"></span>
+            </button>
+            <button class="experiment" data-mode="shared" aria-pressed="false">
+              <span class="experiment-icon">▥</span
+              ><span
+                ><strong>두 탭, 하나의 DB</strong
+                ><small>멀티탭 공유 · 장애 복구</small></span
+              ><span class="active-dot"></span>
+            </button>
+          </div>
+          <div class="schema-heading">
+            <p class="sidebar-label">데이터베이스</p>
+            <button
+              id="refresh-schema"
+              class="icon-button"
+              aria-label="테이블 목록 새로고침"
+              title="테이블 목록 새로고침"
+            >
+              ↻
+            </button>
+          </div>
+          <div id="schema" class="schema"><p>엔진을 연결하고 있어요.</p></div>
+          <div class="sidebar-bottom">
+            <span class="privacy-icon">⌂</span
+            ><strong>이 데이터는 여기 머물러요.</strong>
+            <p>
+              쿼리와 데이터는 서버로 전송되지 않습니다. 링크를 공유해도 각자의
+              브라우저에서 실행됩니다.
+            </p>
+          </div>
+        </aside>
+        <div class="lab-main">
+          <div class="experiment-header">
+            <div>
+              <div id="engine-label" class="engine-label">Memory storage</div>
+              <h3 id="experiment-title">첫 번째 쿼리를 실행해보세요.</h3>
+            </div>
+            <span id="connection" class="connection" role="status"
+              >연결 중</span
+            >
+          </div>
+          <p id="experiment-description" class="experiment-description">
+            샘플 데이터에는 이 프로젝트에 기여한 작업들이 담겨 있어요. SQL을
+            자유롭게 바꿔보세요.
+          </p>
+          <div id="experiment-actions" class="experiment-actions"></div>
+          <div id="notice" class="notice" role="status" hidden></div>
+          <div class="editor">
+            <div class="editor-toolbar">
+              <span><span class="code-dot"></span>query.sql</span>
+              <div>
+                <label class="sr-only" for="sample">예제 쿼리</label
+                ><select id="sample" aria-label="예제 쿼리"></select
+                ><button
+                  id="share"
+                  class="icon-button"
+                  aria-label="쿼리 링크 복사"
+                  title="쿼리 링크 복사"
+                >
+                  ↗
+                </button>
+              </div>
+            </div>
+            <div class="code-area">
+              <pre id="line-numbers" aria-hidden="true">1</pre>
+              <label class="sr-only" for="sql">실행할 SQL</label
+              ><textarea
+                id="sql"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                wrap="off"
+              ></textarea>
+            </div>
+            <div class="editor-bottom">
+              <span><kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>Enter</kbd> 실행</span
+              ><button class="primary-button" id="run" disabled>
+                <span aria-hidden="true">▶</span> SQL 실행
+              </button>
+            </div>
+          </div>
+          <div class="result-toolbar">
+            <div class="result-tabs" role="group" aria-label="결과 표시 방식">
+              <button class="selected" id="table-view" aria-pressed="true">
+                결과 테이블</button
+              ><button id="json-view" aria-pressed="false">JSON</button>
+            </div>
+            <span id="query-stats"></span
+            ><button
+              class="icon-button"
+              id="download"
+              aria-label="결과 JSON 다운로드"
+              title="결과 JSON 다운로드"
+              disabled
+            >
+              ↓
+            </button>
+          </div>
+          <div id="results" class="results" aria-live="polite">
+            <div class="empty-state">
+              <span>⌘</span><strong>SQL이 데이터가 되는 곳</strong>
+              <p>쿼리를 실행하면 실제 결과가 여기에 표시됩니다.</p>
+            </div>
+          </div>
+          <div class="lab-status">
+            <span><i class="status-dot"></i> 브라우저에서 실행</span
+            ><span id="storage-caption">새로고침하면 초기화됩니다</span>
+          </div>
+        </div>
+        <aside class="inspector" aria-label="실행 구조와 기록">
+          <div class="inspector-heading">
+            <h3>어디서 실행될까요?</h3>
+            <span class="live-badge">실행 구조</span>
+          </div>
+          <p id="flow-description">
+            SQL은 WebAssembly 엔진을 거쳐 메모리에 기록됩니다.
+          </p>
+          <div class="flow" id="flow"></div>
+          <div class="flow-note" id="flow-note"></div>
+          <div class="event-heading">
+            <h3>실행 기록</h3>
+            <button class="text-button" id="clear-log">비우기</button>
+          </div>
+          <ol id="events" class="events" aria-live="polite"></ol>
+          <div class="inspector-footnote">
+            구조도는 선택한 엔진의 실행 경로입니다. 기록은 실제 쿼리 결과를
+            표시합니다.
+          </div>
+        </aside>
+      </section>
+      <section
+        class="contributions"
+        id="contributions"
+        aria-labelledby="contribution-title"
+      >
+        <div class="contribution-intro">
+          <span class="contribution-label">Behind the experiments</span>
+          <h2 id="contribution-title">
+            ‘브라우저에서도 된다’에서<br />‘계속 쓸 수 있다’로.
+          </h2>
+          <p>
+            주희가 GlueSQL.js에 기여한 작업입니다.<br />각 실험이 어떤 변화에서
+            시작됐는지 확인해보세요.
+          </p>
+          <a
+            href="https://github.com/juhee200"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="author"
+            ><span>J</span>
+            <div><strong>Juhee Lee</strong><small>@juhee200</small></div>
+            <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <div class="contribution-steps">
+          <a
+            href="https://github.com/gluesql/gluesql-js/pull/13"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span class="step-track">1</span>
+            <div>
+              <h3>화면 밖에서 실행하기 <span>#13 · #15</span></h3>
+              <p>
+                Dedicated Worker로 SQL 실행을 옮기고, 요청과 응답이 정확히
+                연결되는지 테스트했습니다.
+              </p>
+            </div>
+            <span aria-hidden="true">↗</span></a
+          ><a
+            href="https://github.com/gluesql/gluesql-js/pull/16"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span class="step-track">2</span>
+            <div>
+              <h3>탭보다 오래 살아남는 데이터 <span>#16 · #17 · #19</span></h3>
+              <p>
+                redb와 OPFS를 연결해 파일에 저장하고, npm 진입점과 브라우저
+                예제를 더했습니다.
+              </p>
+            </div>
+            <span aria-hidden="true">↗</span></a
+          ><a
+            href="https://github.com/gluesql/gluesql-js/pull/21"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><span class="step-track">3</span>
+            <div>
+              <h3>여러 탭이 같은 데이터를 보도록 <span>#21</span></h3>
+              <p>
+                Web Locks와 BroadcastChannel로 하나의 DB를 공유합니다. 리더 탭이
+                닫히면 다음 탭이 이어받습니다.
+              </p>
+            </div>
+            <span aria-hidden="true">↗</span></a
+          >
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a class="footer-brand" href="./">GlueSQL Lab</a
+      ><span>Built with Rust, WebAssembly & curiosity.</span
+      ><a
+        href="https://gluesql.org/docs"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GlueSQL 문서 ↗</a
+      >
+    </footer>
+    <div class="toast" id="toast" role="status" hidden></div>
+    <noscript
+      >이 실험실은 JavaScript가 필요합니다. 브라우저 설정에서 JavaScript를
+      허용해주세요.</noscript
+    >
+  </body>
+</html>
