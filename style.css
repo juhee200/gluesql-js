@@ -913,117 +913,9 @@ kbd {
   background: #edf2ff;
   transition: background 0.2s;
 }
-.contributions {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 80px;
-  padding: 76px 22px 65px;
-  scroll-margin-top: 30px;
-}
-.contribution-label {
-  font-size: 11px;
-  color: var(--blue);
-  font-weight: 600;
-}
-.contribution-intro h2 {
-  font-size: 26px;
-  line-height: 1.45;
-  letter-spacing: -1.2px;
-  margin-top: 13px;
-}
-.contribution-intro p {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 14px;
-}
-.author {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-top: 22px;
-  width: 165px;
-}
-.author > span:first-child {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  background: #e4ebfd;
-  border-radius: 50%;
-  font-size: 13px;
-  color: #566da3;
-}
-.author strong {
-  display: block;
-  font-size: 11px;
-}
-.author small {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-  margin-top: 2px;
-}
-.author > span:last-child {
-  margin-left: auto;
-  color: #8f9db4;
-}
-.contribution-steps {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-.contribution-steps > a {
-  display: flex;
-  gap: 17px;
-  padding: 23px 0;
-  border-bottom: 1px solid #dfe5ef;
-  align-items: flex-start;
-}
-.contribution-steps > a:first-child {
-  padding-top: 0;
-}
-.contribution-steps > a:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-.step-track {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border: 1px solid #d5dfef;
-  border-radius: 50%;
-  color: #8495b3;
-  font-size: 11px;
-}
-.contribution-steps h3 {
-  font-size: 14px;
-  letter-spacing: -0.4px;
-  line-height: 1.6;
-}
-.contribution-steps h3 span {
-  font-size: 9px;
-  font-weight: 400;
-  color: #8d9ab2;
-  margin-left: 9px;
-  display: inline-block;
-  letter-spacing: 0;
-}
-.contribution-steps p {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 5px;
-  max-width: 54ch;
-}
-.contribution-steps > a > span:last-child {
-  color: #8496b9;
-  font-size: 16px;
-  margin-left: auto;
-}
 footer {
   max-width: 1392px;
-  margin: auto;
+  margin: 44px auto 0;
   border-top: 1px solid #dce3ee;
   display: flex;
   justify-content: space-between;
@@ -1365,9 +1257,6 @@ footer {
   .experiment small {
     font-size: 9px;
   }
-  .contributions {
-    gap: 40px;
-  }
   .intro-visual {
     width: 300px;
   }
@@ -1551,29 +1440,6 @@ footer {
   }
   .inspector-footnote {
     padding-top: 8px;
-  }
-  .contributions {
-    grid-template-columns: 1fr;
-    gap: 30px;
-    padding: 43px 6px 40px;
-  }
-  .contribution-intro h2 {
-    font-size: 25px;
-  }
-  .contribution-intro p {
-    font-size: 11px;
-  }
-  .contribution-steps h3 {
-    font-size: 13px;
-  }
-  .contribution-steps h3 span {
-    margin-left: 4px;
-  }
-  .contribution-steps p {
-    font-size: 10px;
-  }
-  .contribution-steps > a {
-    gap: 12px;
   }
   .lab-status {
     font-size: 8px;
