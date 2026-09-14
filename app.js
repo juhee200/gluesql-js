@@ -1,5 +1,5 @@
 import { createOpfsInspector } from './opfs-inspector.js';
-import { t, text, attr, language, locale } from './i18n.js';
+import { t, text, attr, locale } from './i18n.js';
 
 const $ = (selector) => document.querySelector(selector);
 const mode = ['memory', 'opfs', 'shared'].includes(
@@ -40,8 +40,7 @@ const experiments = {
       ],
       [
         '직접 테이블 만들기',
-        (selectedLanguage) =>
-          `CREATE TABLE IF NOT EXISTS Todo (id INTEGER, task TEXT);\nINSERT INTO Todo VALUES (1, '${t('나의 첫 GlueSQL', {}, selectedLanguage).replaceAll("'", "''")}');\nSELECT * FROM Todo;`,
+        "CREATE TABLE IF NOT EXISTS Todo (id INTEGER, task TEXT);\nINSERT INTO Todo VALUES (1, 'My first GlueSQL');\nSELECT * FROM Todo;",
       ],
       ['오류 확인하기', 'SELECT * FROM Missing;'],
     ],
@@ -157,10 +156,6 @@ function updateControls() {
 function setSQL(sql) {
   $('#sql').value = sql;
   updateLines();
-}
-function sampleQuery(index, selectedLanguage = language) {
-  const sql = experiment.samples[index][1];
-  return typeof sql === 'function' ? sql(selectedLanguage) : sql;
 }
 function updateLines() {
   $('#line-numbers').textContent = $('#sql')
@@ -442,16 +437,16 @@ function configure() {
     option.value = i;
     $('#sample').append(option);
   }
-  setSQL(sampleQuery(0));
+  setSQL(experiment.samples[0][1]);
   if (mode === 'memory') {
     action('집계해보기', () => {
       $('#sample').value = '1';
-      setSQL(sampleQuery(1));
+      setSQL(experiment.samples[1][1]);
       runQuery();
     });
     action('JOIN 해보기', () => {
       $('#sample').value = '2';
-      setSQL(sampleQuery(2));
+      setSQL(experiment.samples[2][1]);
       runQuery();
     });
     action('실험 초기화', () => location.reload(), false);
@@ -546,19 +541,22 @@ async function connect() {
     }
   }
   if (mode === 'memory') {
-    // Seed only a new memory database. Language changes never rewrite data.
-    const seedText = (message) => t(message).replaceAll("'", "''");
+    // Sample data stays in English regardless of the interface language.
     await db.query(`
       CREATE TABLE Contribution (pr INTEGER, title TEXT, area TEXT);
       INSERT INTO Contribution VALUES
-        (13, '${seedText('Worker 기반 OPFS 진입점')}', 'Worker'),
-        (15, '${seedText('Worker 프록시 브라우저 테스트')}', 'Testing'),
-        (16, '${seedText('redb 기반 OPFS 스토리지')}', 'Storage'),
-        (17, '${seedText('OPFS npm 패키징')}', 'Package'),
-        (19, '${seedText('OPFS 예제와 테스트')}', 'Testing'),
-        (21, '${seedText('멀티탭 공유와 장애 복구')}', 'Storage');
+        (13, 'Worker-based OPFS entry point', 'Worker'),
+        (15, 'Worker proxy browser tests', 'Testing'),
+        (16, 'redb-based OPFS storage', 'Storage'),
+        (17, 'OPFS npm packaging', 'Package'),
+        (19, 'OPFS examples and tests', 'Testing'),
+        (21, 'Multi-tab sharing and failover', 'Storage');
       CREATE TABLE Area (name TEXT, description TEXT);
-      INSERT INTO Area VALUES ('Worker', '${seedText('UI 밖에서 SQL 실행')}'), ('Testing', '${seedText('브라우저에서 동작 검증')}'), ('Storage', '${seedText('파일 저장과 공유')}'), ('Package', '${seedText('설치해서 바로 사용')}');
+      INSERT INTO Area VALUES
+        ('Worker', 'Run SQL outside the UI thread'),
+        ('Testing', 'Verify behavior in the browser'),
+        ('Storage', 'File persistence and sharing'),
+        ('Package', 'Install and start using');
     `);
   } else {
     await db.query(
@@ -581,13 +579,7 @@ async function connect() {
 }
 
 configure();
-addEventListener('lab:languagechange', ({ detail }) => {
-  const index = Number($('#sample').value);
-  // Update only an untouched preset, never a custom or shared query.
-  if ($('#sql').value === sampleQuery(index, detail.previousLanguage))
-    setSQL(sampleQuery(index));
-  renderResults();
-});
+addEventListener('lab:languagechange', renderResults);
 $('#run').addEventListener('click', () => runQuery());
 $('#sql').addEventListener('input', updateLines);
 $('#sql').addEventListener('scroll', () => {
@@ -601,7 +593,7 @@ $('#sql').addEventListener('keydown', (event) => {
   }
 });
 $('#sample').addEventListener('change', () =>
-  setSQL(sampleQuery(Number($('#sample').value))),
+  setSQL(experiment.samples[Number($('#sample').value)][1]),
 );
 for (const type of ['table', 'json'])
   $(`#${type}-view`).addEventListener('click', () => {

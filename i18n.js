@@ -91,7 +91,6 @@ const english = {
   'JOIN 실행': 'Join tables',
   '직접 테이블 만들기': 'Create your own table',
   '오류 확인하기': 'Try an error',
-  '나의 첫 GlueSQL': 'My first GlueSQL',
   '새로고침해도, 메모는 그대로.': 'Refresh. Your notes stay.',
   '메모를 저장한 뒤 새로고침해보세요. Worker가 OPFS 파일에 기록한 데이터는 브라우저를 다시 열어도 남습니다.':
     'Save a note, then refresh. A Worker writes to an OPFS file that persists when you reopen your browser.',
@@ -163,16 +162,6 @@ const english = {
     'OPFS is unavailable. Open this site over HTTPS or localhost, or choose SQL playground.',
   '이 브라우저는 멀티탭 공유에 필요한 Web Locks / BroadcastChannel을 지원하지 않습니다. 다른 실험을 선택해주세요.':
     'This browser does not support Web Locks / BroadcastChannel, which shared mode requires. Choose another experiment.',
-  'Worker 기반 OPFS 진입점': 'Worker-based OPFS entry point',
-  'Worker 프록시 브라우저 테스트': 'Worker proxy browser tests',
-  'redb 기반 OPFS 스토리지': 'redb-based OPFS storage',
-  'OPFS npm 패키징': 'OPFS npm packaging',
-  'OPFS 예제와 테스트': 'OPFS examples and tests',
-  '멀티탭 공유와 장애 복구': 'Multi-tab sharing and failover',
-  'UI 밖에서 SQL 실행': 'Run SQL outside the UI thread',
-  '브라우저에서 동작 검증': 'Verify behavior in the browser',
-  '파일 저장과 공유': 'File persistence and sharing',
-  '설치해서 바로 사용': 'Install and start using',
   '{engine} 연결 완료': '{engine} connected',
   '공유된 SQL을 불러왔습니다. 내용을 확인한 뒤 SQL 실행을 눌러주세요. 데이터는 공유되지 않습니다.':
     'Shared SQL loaded. Review it, then press Run SQL. Database contents are not shared.',
