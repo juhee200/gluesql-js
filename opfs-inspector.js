@@ -1,5 +1,7 @@
 // Read-only observations of the same file used by the public OPFS entry point.
 // Never acquire another sync access handle or change the engine's locking mode.
+import { t, text, locale } from './i18n.js';
+
 const PREVIEW_BYTES = 64 * 1024;
 const BLOCK_BYTES = 1024;
 
@@ -18,7 +20,7 @@ export function createOpfsInspector(namespace) {
   $('#opfs-filename').textContent = filename;
 
   const time = (value) =>
-    new Date(value).toLocaleTimeString('ko-KR', {
+    new Date(value).toLocaleTimeString(locale(), {
       hour12: false,
       hour: '2-digit',
       minute: '2-digit',
@@ -42,8 +44,15 @@ export function createOpfsInspector(namespace) {
     if (!current) return;
     const start = selected * BLOCK_BYTES;
     const end = Math.min(start + 64, current.bytes.length);
-    $('#opfs-byte-label').textContent =
-      `블록 ${selected + 1} · 오프셋 ${start.toLocaleString('en-US')}부터 ${end - start}바이트 · 16진수 / ASCII`;
+    text(
+      $('#opfs-byte-label'),
+      '블록 {block} · 오프셋 {offset}부터 {count}바이트 · 16진수 / ASCII',
+      {
+        block: selected + 1,
+        offset: start.toLocaleString('en-US'),
+        count: end - start,
+      },
+    );
     const lines = [];
     for (let offset = start; offset < end; offset += 16) {
       const bytes = current.bytes.slice(offset, Math.min(offset + 16, end));
@@ -63,21 +72,29 @@ export function createOpfsInspector(namespace) {
     $('#opfs-error').hidden = true;
     $('#opfs-snapshot').hidden = false;
     panel.dataset.state = 'ready';
-    $('#opfs-presence').textContent =
+    text(
+      $('#opfs-presence'),
       existedBefore === true
         ? '이 페이지를 열기 전부터 있던 파일을 다시 읽었습니다.'
         : existedBefore === false
           ? '이번 연결에서 만들어진 실제 .db 파일입니다.'
-          : '실제 OPFS 파일에서 읽은 정보입니다.';
+          : '실제 OPFS 파일에서 읽은 정보입니다.',
+    );
     $('#opfs-size').textContent = size(current.size);
     $('#opfs-size-bytes').textContent =
       `${current.size.toLocaleString('en-US')} bytes`;
     $('#opfs-modified').textContent = time(current.lastModified);
     $('#opfs-modified').title = new Date(current.lastModified).toISOString();
-    $('#opfs-observed').textContent = `${time(current.observedAt)} 관측`;
-    $('#opfs-range').textContent =
-      `앞쪽 ${size(current.bytes.length)} / 전체 ${size(current.size)}`;
-    $('#opfs-baseline').textContent = `비교 기준 ${time(baseline.observedAt)}`;
+    text($('#opfs-observed'), '{time} 관측', {
+      time: time(current.observedAt),
+    });
+    text($('#opfs-range'), '앞쪽 {preview} / 전체 {total}', {
+      preview: size(current.bytes.length),
+      total: size(current.size),
+    });
+    text($('#opfs-baseline'), '비교 기준 {time}', {
+      time: time(baseline.observedAt),
+    });
 
     const fragment = document.createDocumentFragment();
     const length = Math.max(current.bytes.length, baseline.bytes.length);
@@ -97,10 +114,19 @@ export function createOpfsInspector(namespace) {
       button.className = `opfs-block ${changed ? 'changed' : nonzero ? 'data' : 'zero'}`;
       button.dataset.block = index;
       button.textContent = index + 1;
-      button.title = `${start.toLocaleString('en-US')}–${(end - 1).toLocaleString('en-US')} bytes · ${changed}바이트 변경`;
+      button.title = t('{start}–{end} bytes · {count}바이트 변경', {
+        start: start.toLocaleString('en-US'),
+        end: (end - 1).toLocaleString('en-US'),
+        count: changed,
+      });
       button.setAttribute(
         'aria-label',
-        `블록 ${index + 1}: ${changed}바이트 변경${start >= current.bytes.length ? ', 현재 파일에는 없음' : ''}`,
+        t('블록 {block}: {count}바이트 변경{absent}', {
+          block: index + 1,
+          count: changed,
+          absent:
+            start >= current.bytes.length ? t(', 현재 파일에는 없음') : '',
+        }),
       );
       button.setAttribute('aria-pressed', String(index === selected));
       button.disabled = start >= current.bytes.length;
@@ -157,12 +183,15 @@ export function createOpfsInspector(namespace) {
       } catch (error) {
         panel.dataset.state = 'unavailable';
         $('#opfs-snapshot').hidden = true;
-        $('#opfs-presence').textContent = '파일 상태를 확인할 수 없습니다.';
+        text($('#opfs-presence'), '파일 상태를 확인할 수 없습니다.');
         $('#opfs-error').hidden = false;
-        $('#opfs-error').textContent =
+        text(
+          $('#opfs-error'),
           error.name === 'NotFoundError'
             ? '아직 파일이 없거나 삭제되었습니다. DB에 연결한 뒤 파일 다시 읽기를 눌러주세요.'
-            : `파일 관측 실패: ${error.message ?? error}. 이 관측 결과는 SQL 실행 성공 여부와 별개입니다.`;
+            : '파일 관측 실패: {error}. 이 관측 결과는 SQL 실행 성공 여부와 별개입니다.',
+          { error: error.message ?? error },
+        );
       } finally {
         pending = null;
         $('#opfs-refresh').disabled = false;
@@ -173,6 +202,10 @@ export function createOpfsInspector(namespace) {
   }
 
   $('#opfs-refresh').addEventListener('click', refresh);
+  addEventListener('lab:languagechange', () => {
+    // Reuse the same snapshot and baseline; changing language never reads or writes the DB.
+    if (current && panel.dataset.state === 'ready') render();
+  });
   $('#opfs-rebase').addEventListener('click', () => {
     if (!current || pending) return;
     baseline = current;

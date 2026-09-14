@@ -7,40 +7,61 @@
     <meta
       name="description"
       content="SQL 실행부터 OPFS 영구 저장, 멀티탭 공유까지. GlueSQL.js의 동작을 브라우저에서 직접 실험해보세요."
+      data-i18n-content
     />
-    <title>GlueSQL Lab — 브라우저 안의 데이터베이스</title>
+    <title data-i18n>GlueSQL Lab — 브라우저 안의 데이터베이스</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./style.css" />
     <script type="module" src="./app.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#workspace">실험실로 이동</a>
+    <a class="skip-link" href="#workspace" data-i18n>실험실로 이동</a>
     <header class="site-header">
-      <a class="brand" href="./" aria-label="GlueSQL Lab 처음으로"
+      <a
+        class="brand"
+        href="./"
+        aria-label="GlueSQL Lab 처음으로"
+        data-i18n-aria-label
         ><span class="brand-mark" aria-hidden="true">g<span>·</span></span
         ><strong>GlueSQL<span class="brand-lab"> Lab</span></strong
         ><span class="version">v0.20.0</span></a
       >
-      <nav aria-label="메인 메뉴">
-        <a class="nav-active" href="#workspace">실험실</a
+      <nav aria-label="메인 메뉴" data-i18n-aria-label>
+        <a class="nav-active" href="#workspace" data-i18n>실험실</a
         ><a
           href="https://github.com/gluesql/gluesql-js"
           target="_blank"
           rel="noopener noreferrer"
           >GitHub <span aria-hidden="true">↗</span></a
         >
+        <label class="language-picker" for="language">
+          <span class="sr-only" data-i18n>언어 선택</span>
+          <span aria-hidden="true">◎</span>
+          <select id="language">
+            <option value="auto" data-i18n>브라우저 설정</option>
+            <option value="en" lang="en">English</option>
+            <option value="ko" lang="ko">한국어</option>
+          </select>
+        </label>
       </nav>
     </header>
     <main>
       <section class="intro" aria-labelledby="title">
         <div>
           <div class="intro-tag">
-            <span class="status-dot"></span>설치 없이, 지금 이 브라우저에서
+            <span class="status-dot"></span
+            ><span data-i18n>설치 없이, 지금 이 브라우저에서 </span>
           </div>
-          <h1 id="title">브라우저 안에<br />데이터베이스를 붙이다.</h1>
+          <h1 id="title">
+            <span data-i18n>브라우저 안에</span><br /><span data-i18n
+              >데이터베이스를 붙이다.</span
+            >
+          </h1>
           <p>
-            SQL을 실행하고, 탭을 닫고, 다시 열어보세요.<br />GlueSQL.js에 더한
-            저장과 연결의 변화를 직접 실험합니다.
+            <span data-i18n> SQL을 실행하고, 탭을 닫고, 다시 열어보세요.</span
+            ><br /><span data-i18n
+              >GlueSQL.js에 더한 저장과 연결의 변화를 직접 실험합니다.
+            </span>
           </p>
         </div>
         <div class="intro-visual" aria-hidden="true">
@@ -67,19 +88,29 @@
               <ellipse cx="12" cy="5" rx="8" ry="3" />
               <path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0" />
             </svg>
-            <div>browser.db<small>내 기기에 저장</small></div>
+            <div>browser.db<small data-i18n>내 기기에 저장</small></div>
             <span class="checkmark">✓</span>
           </div>
         </div>
       </section>
       <div class="lab-heading">
-        <h2>직접 해보는 GlueSQL</h2>
-        <span>실제 WASM 엔진으로 실행됩니다</span>
+        <h2 data-i18n>직접 해보는 GlueSQL</h2>
+        <span data-i18n>실제 WASM 엔진으로 실행됩니다</span>
       </div>
-      <section class="lab" id="workspace" aria-label="GlueSQL 실험실">
+      <section
+        class="lab"
+        id="workspace"
+        aria-label="GlueSQL 실험실"
+        data-i18n-aria-label
+      >
         <aside class="lab-sidebar">
-          <p class="sidebar-label">실험 선택</p>
-          <div class="experiment-list" role="group" aria-label="저장 방식 선택">
+          <p class="sidebar-label" data-i18n>실험 선택</p>
+          <div
+            class="experiment-list"
+            role="group"
+            aria-label="저장 방식 선택"
+            data-i18n-aria-label
+          >
             <button
               class="experiment active"
               data-mode="memory"
@@ -87,41 +118,45 @@
             >
               <span class="experiment-icon">⌘</span
               ><span
-                ><strong>SQL 플레이그라운드</strong
-                ><small>메모리에서 가볍게 시작</small></span
+                ><strong data-i18n>SQL 플레이그라운드</strong
+                ><small data-i18n>메모리에서 가볍게 시작</small></span
               ><span class="active-dot"></span>
             </button>
             <button class="experiment" data-mode="opfs" aria-pressed="false">
               <span class="experiment-icon">▱</span
               ><span
-                ><strong>새로고침해도 그대로</strong
-                ><small>OPFS 영구 저장</small></span
+                ><strong data-i18n>새로고침해도 그대로</strong
+                ><small data-i18n>OPFS 영구 저장</small></span
               ><span class="active-dot"></span>
             </button>
             <button class="experiment" data-mode="shared" aria-pressed="false">
               <span class="experiment-icon">▥</span
               ><span
-                ><strong>두 탭, 하나의 DB</strong
-                ><small>멀티탭 공유 · 장애 복구</small></span
+                ><strong data-i18n>두 탭, 하나의 DB</strong
+                ><small data-i18n>멀티탭 공유 · 장애 복구</small></span
               ><span class="active-dot"></span>
             </button>
           </div>
           <div class="schema-heading">
-            <p class="sidebar-label">데이터베이스</p>
+            <p class="sidebar-label" data-i18n>데이터베이스</p>
             <button
               id="refresh-schema"
               class="icon-button"
               aria-label="테이블 목록 새로고침"
               title="테이블 목록 새로고침"
+              data-i18n-aria-label
+              data-i18n-title
             >
               ↻
             </button>
           </div>
-          <div id="schema" class="schema"><p>엔진을 연결하고 있어요.</p></div>
+          <div id="schema" class="schema">
+            <p data-i18n>엔진을 연결하고 있어요.</p>
+          </div>
           <div class="sidebar-bottom">
             <span class="privacy-icon">⌂</span
-            ><strong>이 데이터는 여기 머물러요.</strong>
-            <p>
+            ><strong data-i18n>이 데이터는 여기 머물러요.</strong>
+            <p data-i18n>
               쿼리와 데이터는 서버로 전송되지 않습니다. 링크를 공유해도 각자의
               브라우저에서 실행됩니다.
             </p>
@@ -131,13 +166,19 @@
           <div class="experiment-header">
             <div>
               <div id="engine-label" class="engine-label">Memory storage</div>
-              <h3 id="experiment-title">첫 번째 쿼리를 실행해보세요.</h3>
+              <h3 id="experiment-title" data-i18n>
+                첫 번째 쿼리를 실행해보세요.
+              </h3>
             </div>
-            <span id="connection" class="connection" role="status"
+            <span id="connection" class="connection" role="status" data-i18n
               >연결 중</span
             >
           </div>
-          <p id="experiment-description" class="experiment-description">
+          <p
+            id="experiment-description"
+            class="experiment-description"
+            data-i18n
+          >
             샘플 데이터에는 이 프로젝트에 기여한 작업들이 담겨 있어요. SQL을
             자유롭게 바꿔보세요.
           </p>
@@ -150,8 +191,8 @@
             hidden
           >
             <div class="opfs-heading">
-              <h4 id="opfs-title">브라우저 안의 실제 파일</h4>
-              <button id="opfs-refresh" class="text-button">
+              <h4 id="opfs-title" data-i18n>브라우저 안의 실제 파일</h4>
+              <button id="opfs-refresh" class="text-button" data-i18n>
                 파일 다시 읽기
               </button>
             </div>
@@ -163,7 +204,9 @@
               <span class="opfs-file-icon" aria-hidden="true">▱</span>
               <div>
                 <strong id="opfs-filename"></strong>
-                <p id="opfs-presence" role="status">파일을 확인하고 있어요.</p>
+                <p id="opfs-presence" role="status" data-i18n>
+                  파일을 확인하고 있어요.
+                </p>
               </div>
               <span class="opfs-file-badge">redb</span>
             </div>
@@ -171,47 +214,54 @@
             <div id="opfs-snapshot" hidden>
               <dl class="opfs-metrics">
                 <div>
-                  <dt>실제 파일 크기</dt>
+                  <dt data-i18n>실제 파일 크기</dt>
                   <dd id="opfs-size"></dd>
                   <small id="opfs-size-bytes"></small>
                 </div>
                 <div>
-                  <dt>기준 이후 바뀐 바이트</dt>
+                  <dt data-i18n>기준 이후 바뀐 바이트</dt>
                   <dd id="opfs-changed-count"></dd>
-                  <small>미리보기 범위 안에서 비교</small>
+                  <small data-i18n>미리보기 범위 안에서 비교</small>
                 </div>
                 <div>
-                  <dt>파일 수정 시각</dt>
+                  <dt data-i18n>파일 수정 시각</dt>
                   <dd id="opfs-modified"></dd>
                   <small id="opfs-observed"></small>
                 </div>
               </dl>
               <div class="opfs-map-heading">
-                <strong>파일 바이트 지도</strong><span id="opfs-range"></span>
+                <strong data-i18n>파일 바이트 지도</strong
+                ><span id="opfs-range"></span>
               </div>
               <div
                 id="opfs-blocks"
                 class="opfs-blocks"
                 role="group"
                 aria-label="실제 파일의 1 KiB 블록 선택"
+                data-i18n-aria-label
               ></div>
               <div class="opfs-legend">
-                <span><i class="zero"></i>모두 0</span
-                ><span><i class="data"></i>0 아닌 값 포함</span
-                ><span><i class="changed"></i>기준과 달라짐</span>
+                <span><i class="zero"></i><span data-i18n>모두 0</span></span
+                ><span
+                  ><i class="data"></i
+                  ><span data-i18n>0 아닌 값 포함</span></span
+                ><span
+                  ><i class="changed"></i
+                  ><span data-i18n>기준과 달라짐</span></span
+                >
               </div>
               <div class="opfs-comparison">
                 <span id="opfs-baseline"></span
-                ><button id="opfs-rebase" class="text-button">
+                ><button id="opfs-rebase" class="text-button" data-i18n>
                   현재를 비교 기준으로
                 </button>
               </div>
               <details id="opfs-byte-details" class="opfs-byte-details">
-                <summary>선택한 블록의 실제 바이트 보기</summary>
+                <summary data-i18n>선택한 블록의 실제 바이트 보기</summary>
                 <p id="opfs-byte-label"></p>
                 <pre id="opfs-bytes"></pre>
               </details>
-              <p class="opfs-explainer">
+              <p class="opfs-explainer" data-i18n>
                 칸을 누르면 실제 바이트를 볼 수 있어요. 파일 앞쪽 최대 64 KiB만
                 읽으며, 각 칸은 1 KiB입니다. 색은 메타데이터를 포함한 바이트
                 비교 결과로, DB의 여유 공간이나 실제 디스크 블록을 뜻하지
@@ -224,13 +274,19 @@
             <div class="editor-toolbar">
               <span><span class="code-dot"></span>query.sql</span>
               <div>
-                <label class="sr-only" for="sample">예제 쿼리</label
-                ><select id="sample" aria-label="예제 쿼리"></select
+                <label class="sr-only" for="sample" data-i18n>예제 쿼리</label
+                ><select
+                  id="sample"
+                  aria-label="예제 쿼리"
+                  data-i18n-aria-label
+                ></select
                 ><button
                   id="share"
                   class="icon-button"
                   aria-label="쿼리 링크 복사"
                   title="쿼리 링크 복사"
+                  data-i18n-aria-label
+                  data-i18n-title
                 >
                   ↗
                 </button>
@@ -238,7 +294,7 @@
             </div>
             <div class="code-area">
               <pre id="line-numbers" aria-hidden="true">1</pre>
-              <label class="sr-only" for="sql">실행할 SQL</label
+              <label class="sr-only" for="sql" data-i18n>실행할 SQL</label
               ><textarea
                 id="sql"
                 spellcheck="false"
@@ -248,15 +304,28 @@
               ></textarea>
             </div>
             <div class="editor-bottom">
-              <span><kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>Enter</kbd> 실행</span
+              <span
+                ><kbd>⌘</kbd> / <kbd>Ctrl</kbd> + <kbd>Enter</kbd
+                ><span data-i18n> 실행</span></span
               ><button class="primary-button" id="run" disabled>
-                <span aria-hidden="true">▶</span> SQL 실행
+                <span aria-hidden="true">▶</span>
+                <span id="run-label" data-i18n>SQL 실행</span>
               </button>
             </div>
           </div>
           <div class="result-toolbar">
-            <div class="result-tabs" role="group" aria-label="결과 표시 방식">
-              <button class="selected" id="table-view" aria-pressed="true">
+            <div
+              class="result-tabs"
+              role="group"
+              aria-label="결과 표시 방식"
+              data-i18n-aria-label
+            >
+              <button
+                class="selected"
+                id="table-view"
+                aria-pressed="true"
+                data-i18n
+              >
                 결과 테이블</button
               ><button id="json-view" aria-pressed="false">JSON</button>
             </div>
@@ -267,37 +336,47 @@
               aria-label="결과 JSON 다운로드"
               title="결과 JSON 다운로드"
               disabled
+              data-i18n-aria-label
+              data-i18n-title
             >
               ↓
             </button>
           </div>
           <div id="results" class="results" aria-live="polite">
             <div class="empty-state">
-              <span>⌘</span><strong>SQL이 데이터가 되는 곳</strong>
-              <p>쿼리를 실행하면 실제 결과가 여기에 표시됩니다.</p>
+              <span>⌘</span><strong data-i18n>SQL이 데이터가 되는 곳</strong>
+              <p data-i18n>쿼리를 실행하면 실제 결과가 여기에 표시됩니다.</p>
             </div>
           </div>
           <div class="lab-status">
-            <span><i class="status-dot"></i> 브라우저에서 실행</span
-            ><span id="storage-caption">새로고침하면 초기화됩니다</span>
+            <span
+              ><i class="status-dot"></i
+              ><span data-i18n> 브라우저에서 실행</span></span
+            ><span id="storage-caption" data-i18n
+              >새로고침하면 초기화됩니다</span
+            >
           </div>
         </div>
-        <aside class="inspector" aria-label="실행 구조와 기록">
+        <aside
+          class="inspector"
+          aria-label="실행 구조와 기록"
+          data-i18n-aria-label
+        >
           <div class="inspector-heading">
-            <h3>어디서 실행될까요?</h3>
-            <span class="live-badge">실행 구조</span>
+            <h3 data-i18n>어디서 실행될까요?</h3>
+            <span class="live-badge" data-i18n>실행 구조</span>
           </div>
-          <p id="flow-description">
+          <p id="flow-description" data-i18n>
             SQL은 WebAssembly 엔진을 거쳐 메모리에 기록됩니다.
           </p>
           <div class="flow" id="flow"></div>
           <div class="flow-note" id="flow-note"></div>
           <div class="event-heading">
-            <h3>실행 기록</h3>
-            <button class="text-button" id="clear-log">비우기</button>
+            <h3 data-i18n>실행 기록</h3>
+            <button class="text-button" id="clear-log" data-i18n>비우기</button>
           </div>
           <ol id="events" class="events" aria-live="polite"></ol>
-          <div class="inspector-footnote">
+          <div class="inspector-footnote" data-i18n>
             구조도는 선택한 엔진의 실행 경로입니다. 기록은 실제 쿼리 결과를
             표시합니다.
           </div>
@@ -311,13 +390,14 @@
         href="https://gluesql.org/docs"
         target="_blank"
         rel="noopener noreferrer"
+        data-i18n
         >GlueSQL 문서 ↗</a
       >
     </footer>
     <div class="toast" id="toast" role="status" hidden></div>
     <noscript
-      >이 실험실은 JavaScript가 필요합니다. 브라우저 설정에서 JavaScript를
-      허용해주세요.</noscript
+      >This lab needs JavaScript. Enable it in your browser settings. / 이
+      실험실은 JavaScript가 필요합니다.</noscript
     >
   </body>
 </html>

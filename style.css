@@ -163,6 +163,25 @@ a:hover {
   border-bottom: 2px solid var(--blue);
   color: var(--blue);
 }
+.language-picker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 3px 7px;
+  background: var(--white);
+  color: var(--muted);
+}
+.language-picker select {
+  width: 150px;
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+}
 main {
   max-width: 1480px;
   margin: auto;
@@ -1267,10 +1286,10 @@ footer {
 @media (max-width: 760px) {
   .site-header {
     height: 72px;
-    padding: 0 20px;
+    padding: 0 16px;
   }
   .brand > strong {
-    font-size: 20px;
+    font-size: 18px;
   }
   .brand {
     gap: 8px;
@@ -1288,6 +1307,17 @@ footer {
   .site-header nav > a:first-child,
   .version {
     display: none;
+  }
+  .site-header nav > a,
+  .language-picker > span[aria-hidden] {
+    display: none;
+  }
+  .language-picker {
+    padding: 3px 5px;
+  }
+  .language-picker select {
+    width: 132px;
+    font-size: 11px;
   }
   main {
     padding: 0 16px;

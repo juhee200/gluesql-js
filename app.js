@@ -1,4 +1,5 @@
 import { createOpfsInspector } from './opfs-inspector.js';
+import { t, text, attr, language, locale } from './i18n.js';
 
 const $ = (selector) => document.querySelector(selector);
 const mode = ['memory', 'opfs', 'shared'].includes(
@@ -39,7 +40,8 @@ const experiments = {
       ],
       [
         '직접 테이블 만들기',
-        "CREATE TABLE IF NOT EXISTS Todo (id INTEGER, task TEXT);\nINSERT INTO Todo VALUES (1, '나의 첫 GlueSQL');\nSELECT * FROM Todo;",
+        (selectedLanguage) =>
+          `CREATE TABLE IF NOT EXISTS Todo (id INTEGER, task TEXT);\nINSERT INTO Todo VALUES (1, '${t('나의 첫 GlueSQL', {}, selectedLanguage).replaceAll("'", "''")}');\nSELECT * FROM Todo;`,
       ],
       ['오류 확인하기', 'SELECT * FROM Missing;'],
     ],
@@ -112,26 +114,32 @@ function element(tag, text, className) {
   if (className) node.className = className;
   return node;
 }
-function log(message, error = false) {
+function localizedElement(tag, message, className, params = {}) {
+  return text(element(tag, undefined, className), message, params);
+}
+function log(message, error = false, params = {}) {
   const item = element('li', undefined, error ? 'error' : '');
-  const content = element('div', message);
+  const content = element('div');
+  content.append(localizedElement('span', message, undefined, params));
   content.append(
-    element('time', new Date().toLocaleTimeString('ko-KR', { hour12: false })),
+    element('time', new Date().toLocaleTimeString(locale(), { hour12: false })),
   );
   item.append(content);
   $('#events').prepend(item);
   while ($('#events').children.length > 12) $('#events').lastChild.remove();
 }
 function notify(message) {
-  $('#toast').textContent = message;
+  text($('#toast'), message);
   $('#toast').hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
     $('#toast').hidden = true;
   }, 4000);
 }
-function notice(message, error = false) {
-  $('#notice').textContent = message;
+function notice(message, error = false, params = {}) {
+  $('#notice').replaceChildren(
+    localizedElement('span', message, undefined, params),
+  );
   $('#notice').hidden = !message;
   $('#notice').classList.toggle('error', error);
 }
@@ -143,12 +151,16 @@ function updateControls() {
     '[data-needs-db]',
   ))
     button.disabled = unavailable;
-  $('#run').lastChild.textContent = busy ? ' 실행 중…' : ' SQL 실행';
+  text($('#run-label'), busy ? '실행 중…' : 'SQL 실행');
   $('#flow').classList.toggle('running', busy);
 }
 function setSQL(sql) {
   $('#sql').value = sql;
   updateLines();
+}
+function sampleQuery(index, selectedLanguage = language) {
+  const sql = experiment.samples[index][1];
+  return typeof sql === 'function' ? sql(selectedLanguage) : sql;
 }
 function updateLines() {
   $('#line-numbers').textContent = $('#sql')
@@ -165,8 +177,8 @@ function renderRows(rows) {
     const empty = element('div', undefined, 'empty-state');
     empty.append(
       element('span', '▱'),
-      element('strong', '조회된 행이 없어요.'),
-      element(
+      localizedElement('strong', '조회된 행이 없어요.'),
+      localizedElement(
         'p',
         mode === 'memory'
           ? '조건을 바꾸거나 데이터를 추가해보세요.'
@@ -197,7 +209,13 @@ function renderRows(rows) {
 function renderResults() {
   const results = $('#results');
   if (resultError !== null) {
-    results.replaceChildren(element('div', resultError, 'query-error'));
+    const help = t('SQL과 테이블 이름을 확인한 뒤 다시 실행해주세요.');
+    const leaderHelp = resultError.includes('leader lost')
+      ? `\n${t('리더가 바뀌는 동안 실행 중이던 쿼리입니다. 쓰기는 반영 여부를 먼저 확인해주세요.')}`
+      : '';
+    results.replaceChildren(
+      element('div', `${resultError}\n\n${help}${leaderHelp}`, 'query-error'),
+    );
     return;
   }
   if (payloads === null) return;
@@ -211,7 +229,7 @@ function renderResults() {
       results.append(
         element(
           'div',
-          `${payloads.length > 1 ? `${index + 1}. ` : ''}${payload.type}${payload.affected !== undefined ? ` · ${payload.affected}행 반영` : ''}`,
+          `${payloads.length > 1 ? `${index + 1}. ` : ''}${payload.type}${payload.affected !== undefined ? ` · ${t('{count}행 반영', { count: payload.affected })}` : ''}`,
           'payload-label',
         ),
       );
@@ -224,10 +242,11 @@ function renderResults() {
       results.append(renderRows(rows));
       if (rows.length > 500)
         results.append(
-          element(
+          localizedElement(
             'p',
-            `전체 ${rows.length}행 중 500행을 표시합니다. 전체 결과는 JSON으로 다운로드할 수 있어요.`,
+            '전체 {count}행 중 500행을 표시합니다. 전체 결과는 JSON으로 다운로드할 수 있어요.',
             'payload-label',
+            { count: rows.length },
           ),
         );
     } else if (
@@ -245,14 +264,17 @@ function showResults(result, elapsed) {
       sum + (p.rows?.length ?? p.columns?.length ?? p.tables?.length ?? 0),
     0,
   );
-  $('#query-stats').textContent = `${rowCount}행 · ${elapsed.toFixed(1)} ms`;
+  text($('#query-stats'), '{count}행 · {elapsed} ms', {
+    count: rowCount,
+    elapsed: elapsed.toFixed(1),
+  });
   $('#download').disabled = false;
   renderResults();
 }
 function showQueryError(error) {
-  resultError = `${error.message ?? error}\n\nSQL과 테이블 이름을 확인한 뒤 다시 실행해주세요.${String(error.message ?? error).includes('leader lost') ? '\n리더가 바뀌는 동안 실행 중이던 쿼리입니다. 쓰기는 반영 여부를 먼저 확인해주세요.' : ''}`;
+  resultError = String(error.message ?? error);
   payloads = null;
-  $('#query-stats').textContent = '실행 오류';
+  text($('#query-stats'), '실행 오류');
   $('#download').disabled = true;
   renderResults();
   log(String(error.message ?? error), true);
@@ -276,7 +298,7 @@ async function refreshSchema() {
     fragment.append(details);
   }
   if (!fragment.childNodes.length)
-    fragment.append(element('p', '테이블을 만들어보세요.'));
+    fragment.append(localizedElement('p', '테이블을 만들어보세요.'));
   $('#schema').replaceChildren(fragment);
 }
 async function runQuery(sql = $('#sql').value) {
@@ -292,12 +314,16 @@ async function runQuery(sql = $('#sql').value) {
     const result = await db.query(sql);
     showResults(result, performance.now() - start);
     if (sql === noteQuery) previousNotes = JSON.stringify(result);
-    log(`${result.map((p) => p.type).join(', ')} 실행 완료`);
+    log('{types} 실행 완료', false, {
+      types: result.map((p) => p.type).join(', '),
+    });
     // Introspection failures must not turn an already successful write into an apparent failure.
     try {
       await refreshSchema();
     } catch (error) {
-      log(`테이블 목록 갱신 실패: ${error.message ?? error}`, true);
+      log('테이블 목록 갱신 실패: {error}', true, {
+        error: error.message ?? error,
+      });
     }
   } catch (error) {
     showQueryError(error);
@@ -309,7 +335,7 @@ async function runQuery(sql = $('#sql').value) {
   }
 }
 function action(label, callback, needsDb = true) {
-  const button = element('button', label, 'secondary-button');
+  const button = localizedElement('button', label, 'secondary-button');
   if (needsDb) button.dataset.needsDb = '';
   button.addEventListener('click', callback);
   $('#experiment-actions').append(button);
@@ -368,8 +394,9 @@ async function pollNotes() {
     if (!String(error.message ?? error).includes('leader lost')) {
       clearInterval(pollTimer);
       notice(
-        `공유 조회가 중지되었습니다: ${error.message ?? error}. SQL 실행으로 다시 확인해주세요.`,
+        '공유 조회가 중지되었습니다: {error}. SQL 실행으로 다시 확인해주세요.',
         true,
+        { error: error.message ?? error },
       );
     }
   } finally {
@@ -394,42 +421,45 @@ function configure() {
     });
   }
   $('#engine-label').textContent = experiment.label;
-  $('#experiment-title').textContent = experiment.title;
-  $('#experiment-description').textContent = experiment.description;
-  $('#storage-caption').textContent = experiment.caption;
-  $('#flow-description').textContent = experiment.flowDescription;
-  $('#flow-note').textContent = experiment.flowNote;
+  text($('#experiment-title'), experiment.title);
+  text($('#experiment-description'), experiment.description);
+  text($('#storage-caption'), experiment.caption);
+  text($('#flow-description'), experiment.flowDescription);
+  text($('#flow-note'), experiment.flowNote);
   for (const [i, [icon, title, description]] of experiment.flow.entries()) {
     if (i) $('#flow').append(element('div', '↓', 'flow-arrow'));
     const node = element('div', undefined, 'flow-node');
     const content = element('div');
-    content.append(element('strong', title), element('small', description));
+    content.append(
+      localizedElement('strong', title),
+      localizedElement('small', description),
+    );
     node.append(element('span', icon), content);
     $('#flow').append(node);
   }
   for (const [i, [label]] of experiment.samples.entries()) {
-    const option = element('option', label);
+    const option = localizedElement('option', label);
     option.value = i;
     $('#sample').append(option);
   }
-  setSQL(experiment.samples[0][1]);
+  setSQL(sampleQuery(0));
   if (mode === 'memory') {
     action('집계해보기', () => {
       $('#sample').value = '1';
-      setSQL(experiment.samples[1][1]);
+      setSQL(sampleQuery(1));
       runQuery();
     });
     action('JOIN 해보기', () => {
       $('#sample').value = '2';
-      setSQL(experiment.samples[2][1]);
+      setSQL(sampleQuery(2));
       runQuery();
     });
     action('실험 초기화', () => location.reload(), false);
   } else {
     const input = element('input', undefined, 'note-input');
     input.id = 'note-input';
-    input.placeholder = '브라우저에 남길 메모를 입력하세요';
-    input.setAttribute('aria-label', '저장할 메모');
+    attr(input, 'placeholder', '브라우저에 남길 메모를 입력하세요');
+    attr(input, 'aria-label', '저장할 메모');
     input.maxLength = 500;
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && !event.isComposing) saveNote();
@@ -441,7 +471,7 @@ function configure() {
     else {
       const url = new URL(location.href);
       url.hash = '';
-      const link = element('a', '두 번째 탭 열기', 'secondary-button');
+      const link = localizedElement('a', '두 번째 탭 열기', 'secondary-button');
       link.href = url.href;
       link.target = '_blank';
       link.rel = 'noopener';
@@ -450,7 +480,7 @@ function configure() {
         db.terminate();
         closed = true;
         clearInterval(pollTimer);
-        $('#connection').textContent = '연결 종료';
+        text($('#connection'), '연결 종료');
         updateControls();
         log('이 탭의 DB 연결 종료');
         notice(
@@ -516,25 +546,27 @@ async function connect() {
     }
   }
   if (mode === 'memory') {
+    // Seed only a new memory database. Language changes never rewrite data.
+    const seedText = (message) => t(message).replaceAll("'", "''");
     await db.query(`
       CREATE TABLE Contribution (pr INTEGER, title TEXT, area TEXT);
       INSERT INTO Contribution VALUES
-        (13, 'Worker 기반 OPFS 진입점', 'Worker'),
-        (15, 'Worker 프록시 브라우저 테스트', 'Testing'),
-        (16, 'redb 기반 OPFS 스토리지', 'Storage'),
-        (17, 'OPFS npm 패키징', 'Package'),
-        (19, 'OPFS 예제와 테스트', 'Testing'),
-        (21, '멀티탭 공유와 장애 복구', 'Storage');
+        (13, '${seedText('Worker 기반 OPFS 진입점')}', 'Worker'),
+        (15, '${seedText('Worker 프록시 브라우저 테스트')}', 'Testing'),
+        (16, '${seedText('redb 기반 OPFS 스토리지')}', 'Storage'),
+        (17, '${seedText('OPFS npm 패키징')}', 'Package'),
+        (19, '${seedText('OPFS 예제와 테스트')}', 'Testing'),
+        (21, '${seedText('멀티탭 공유와 장애 복구')}', 'Storage');
       CREATE TABLE Area (name TEXT, description TEXT);
-      INSERT INTO Area VALUES ('Worker', 'UI 밖에서 SQL 실행'), ('Testing', '브라우저에서 동작 검증'), ('Storage', '파일 저장과 공유'), ('Package', '설치해서 바로 사용');
+      INSERT INTO Area VALUES ('Worker', '${seedText('UI 밖에서 SQL 실행')}'), ('Testing', '${seedText('브라우저에서 동작 검증')}'), ('Storage', '${seedText('파일 저장과 공유')}'), ('Package', '${seedText('설치해서 바로 사용')}');
     `);
   } else {
     await db.query(
       'CREATE TABLE IF NOT EXISTS Note (id TEXT PRIMARY KEY, author TEXT, message TEXT, created_at TEXT);',
     );
   }
-  $('#connection').textContent = '연결됨';
-  log(`${experiment.label} 연결 완료`);
+  text($('#connection'), '연결됨');
+  log('{engine} 연결 완료', false, { engine: experiment.label });
   updateControls();
   await refreshSchema();
   const sharedSQL = new URLSearchParams(location.hash.slice(1)).get('sql');
@@ -549,6 +581,13 @@ async function connect() {
 }
 
 configure();
+addEventListener('lab:languagechange', ({ detail }) => {
+  const index = Number($('#sample').value);
+  // Update only an untouched preset, never a custom or shared query.
+  if ($('#sql').value === sampleQuery(index, detail.previousLanguage))
+    setSQL(sampleQuery(index));
+  renderResults();
+});
 $('#run').addEventListener('click', () => runQuery());
 $('#sql').addEventListener('input', updateLines);
 $('#sql').addEventListener('scroll', () => {
@@ -562,7 +601,7 @@ $('#sql').addEventListener('keydown', (event) => {
   }
 });
 $('#sample').addEventListener('change', () =>
-  setSQL(experiment.samples[Number($('#sample').value)][1]),
+  setSQL(sampleQuery(Number($('#sample').value))),
 );
 for (const type of ['table', 'json'])
   $(`#${type}-view`).addEventListener('click', () => {
@@ -581,7 +620,7 @@ $('#refresh-schema').addEventListener('click', async () => {
     await refreshSchema();
     notify('테이블 목록을 갱신했습니다.');
   } catch (error) {
-    notice(`목록 갱신 실패: ${error.message ?? error}`, true);
+    notice('목록 갱신 실패: {error}', true, { error: error.message ?? error });
   } finally {
     busy = false;
     updateControls();
@@ -615,7 +654,7 @@ $('#share').addEventListener('click', async () => {
     const input = element('input', undefined, 'note-input');
     input.value = url.href;
     input.readOnly = true;
-    input.setAttribute('aria-label', '공유 쿼리 링크');
+    attr(input, 'aria-label', '공유 쿼리 링크');
     $('#notice').append(input);
     input.focus();
     input.select();
@@ -631,16 +670,28 @@ addEventListener('pageshow', (event) => {
   if (event.persisted) location.reload();
 });
 connect().catch(async (error) => {
-  db?.terminate?.();
-  db?.free?.();
+  try {
+    db?.terminate?.();
+    db?.free?.();
+  } catch {
+    // A failed WASM call can leave a borrowed value. Still show the original
+    // connection error, and keep the language picker and other modes usable.
+  }
   db = null;
-  $('#connection').textContent = '연결 실패';
+  text($('#connection'), '연결 실패');
   $('#connection').classList.add('failed');
-  $('#schema').replaceChildren(element('p', '엔진 연결을 확인해주세요.'));
-  notice(
-    `연결 실패: ${error.message ?? error}${mode === 'opfs' ? ' 같은 실험을 연 다른 탭이 있다면 닫고 새로고침하거나 멀티탭 실험을 선택해주세요.' : ''}`,
-    true,
+  $('#schema').replaceChildren(
+    localizedElement('p', '엔진 연결을 확인해주세요.'),
   );
+  notice('연결 실패: {error}{hint}', true, () => ({
+    error: t(String(error.message ?? error)),
+    hint:
+      mode === 'opfs'
+        ? t(
+            ' 같은 실험을 연 다른 탭이 있다면 닫고 새로고침하거나 멀티탭 실험을 선택해주세요.',
+          )
+        : '',
+  }));
   log(String(error.message ?? error), true);
   updateControls();
   await fileInspector?.refresh();
