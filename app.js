@@ -39,6 +39,11 @@ const experiments = {
         'SELECT c.pr, c.title, a.description\nFROM Contribution c\nJOIN Area a ON c.area = a.name\nORDER BY c.pr;',
       ],
       [
+        '데이터 추가',
+        "INSERT INTO Contribution VALUES\n  (100, 'My first contribution', 'Testing');\n" +
+          contributionQuery,
+      ],
+      [
         '직접 테이블 만들기',
         "CREATE TABLE IF NOT EXISTS Todo (id INTEGER, task TEXT);\nINSERT INTO Todo VALUES (1, 'My first GlueSQL');\nSELECT * FROM Todo;",
       ],
@@ -447,6 +452,11 @@ function configure() {
     action('JOIN 해보기', () => {
       $('#sample').value = '2';
       setSQL(experiment.samples[2][1]);
+      runQuery();
+    });
+    action('데이터 넣어보기', () => {
+      $('#sample').value = '3';
+      setSQL(experiment.samples[3][1]);
       runQuery();
     });
     action('실험 초기화', () => location.reload(), false);
