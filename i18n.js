@@ -148,6 +148,11 @@ const english = {
   'JOIN 해보기': 'Try a JOIN',
   '데이터 넣어보기': 'Try an INSERT',
   '실험 초기화': 'Reset experiment',
+  '저장 위치': 'Storage',
+  '샘플 데이터가 이 브라우저의 OPFS 파일에 저장됩니다. 데이터를 넣고 새로고침해도 남아 있어요.':
+    'The sample data lives in an OPFS file in this browser. Insert a row, refresh, and it is still there.',
+  '샘플 데이터로 초기화 완료': 'Sample data restored',
+  '샘플 데이터로 초기화했습니다.': 'Restored the sample data.',
   '브라우저에 남길 메모를 입력하세요': 'Write a note to keep in your browser',
   '저장할 메모': 'Note to save',
   '메모 저장': 'Save note',

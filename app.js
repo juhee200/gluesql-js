@@ -2,17 +2,43 @@ import { createOpfsInspector } from './opfs-inspector.js';
 import { t, text, attr, locale } from './i18n.js';
 
 const $ = (selector) => document.querySelector(selector);
-const mode = ['memory', 'opfs', 'shared'].includes(
-  new URLSearchParams(location.search).get('mode'),
-)
-  ? new URLSearchParams(location.search).get('mode')
+const params = new URLSearchParams(location.search);
+const mode = ['memory', 'opfs', 'shared'].includes(params.get('mode'))
+  ? params.get('mode')
   : 'memory';
-const namespace = `gluesql-lab-${mode}-v1`;
-const fileInspector = mode === 'memory' ? null : createOpfsInspector(namespace);
+// The SQL playground (mode=memory) can also keep its tables in its own OPFS file.
+const persistent = mode === 'memory' && params.get('storage') === 'opfs';
+const engine = persistent ? 'opfs' : mode;
+const namespace = persistent
+  ? 'gluesql-lab-playground-v1'
+  : `gluesql-lab-${mode}-v1`;
+const fileInspector =
+  engine === 'memory' ? null : createOpfsInspector(namespace);
+const search = (experimentMode, opfs = false) =>
+  new URLSearchParams(
+    opfs ? { mode: experimentMode, storage: 'opfs' } : { mode: experimentMode },
+  ).toString();
 const noteQuery =
   'SELECT author, message, created_at\nFROM Note\nORDER BY created_at DESC;';
 const contributionQuery =
   'SELECT pr, title, area\nFROM Contribution\nORDER BY pr;';
+// Sample data stays in English regardless of the interface language.
+const sampleData = `
+  CREATE TABLE Contribution (pr INTEGER, title TEXT, area TEXT);
+  INSERT INTO Contribution VALUES
+    (13, 'Worker-based OPFS entry point', 'Worker'),
+    (15, 'Worker proxy browser tests', 'Testing'),
+    (16, 'redb-based OPFS storage', 'Storage'),
+    (17, 'OPFS npm packaging', 'Package'),
+    (19, 'OPFS examples and tests', 'Testing'),
+    (21, 'Multi-tab sharing and failover', 'Storage');
+  CREATE TABLE Area (name TEXT, description TEXT);
+  INSERT INTO Area VALUES
+    ('Worker', 'Run SQL outside the UI thread'),
+    ('Testing', 'Verify behavior in the browser'),
+    ('Storage', 'File persistence and sharing'),
+    ('Package', 'Install and start using');
+`;
 const experiments = {
   memory: {
     label: 'Memory storage',
@@ -94,7 +120,18 @@ const experiments = {
     ],
   },
 };
-const experiment = experiments[mode];
+const experiment = persistent
+  ? {
+      ...experiments.memory,
+      label: experiments.opfs.label,
+      description:
+        '샘플 데이터가 이 브라우저의 OPFS 파일에 저장됩니다. 데이터를 넣고 새로고침해도 남아 있어요.',
+      caption: experiments.opfs.caption,
+      flow: experiments.opfs.flow,
+      flowDescription: experiments.opfs.flowDescription,
+      flowNote: experiments.opfs.flowNote,
+    }
+  : experiments[mode];
 let db;
 let busy = false;
 let closed = false;
@@ -371,6 +408,33 @@ async function saveNote() {
     await runQuery(noteQuery);
   }
 }
+async function resetPlayground() {
+  if (busy || !db || closed) return;
+  busy = true;
+  updateControls();
+  let restored = false;
+  try {
+    // A reload keeps an OPFS file, so drop every table before seeding again.
+    const [{ tables }] = await db.query('SHOW TABLES;');
+    for (const name of tables ?? [])
+      await db.query(`DROP TABLE "${name.replaceAll('"', '""')}";`);
+    await db.query(sampleData);
+    restored = true;
+    log('샘플 데이터로 초기화 완료');
+    notify('샘플 데이터로 초기화했습니다.');
+  } catch (error) {
+    showQueryError(error);
+  } finally {
+    if (!restored) await fileInspector?.refresh();
+    busy = false;
+    updateControls();
+  }
+  if (restored) {
+    setSQL(contributionQuery);
+    $('#sample').value = '0';
+    await runQuery(contributionQuery);
+  }
+}
 async function pollNotes() {
   if (busy || closed || !db || document.hidden) return;
   if ($('#sql').value !== noteQuery) {
@@ -411,15 +475,15 @@ function configure() {
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
     button.addEventListener('click', () => {
-      if (active) return;
+      // From the OPFS playground, its own entry returns to memory storage.
+      if (active && !persistent) return;
       const url = new URL(location.href);
-      url.search = new URLSearchParams({
-        mode: button.dataset.mode,
-      }).toString();
+      url.search = search(button.dataset.mode);
       url.hash = '';
       location.assign(url);
     });
   }
+  if (persistent) text($('[data-mode="memory"] small'), 'OPFS 영구 저장');
   $('#engine-label').textContent = experiment.label;
   text($('#experiment-title'), experiment.title);
   text($('#experiment-description'), experiment.description);
@@ -459,7 +523,30 @@ function configure() {
       setSQL(experiment.samples[3][1]);
       runQuery();
     });
-    action('실험 초기화', () => location.reload(), false);
+    if (persistent) action('실험 초기화', resetPlayground);
+    else action('실험 초기화', () => location.reload(), false);
+    const storages = element('div', undefined, 'storage-switch');
+    storages.setAttribute('role', 'group');
+    attr(storages, 'aria-label', '저장 위치');
+    const storagesLabel = localizedElement('span', '저장 위치');
+    storagesLabel.setAttribute('aria-hidden', 'true');
+    storages.append(storagesLabel);
+    for (const [label, opfs] of [
+      ['메모리', false],
+      ['OPFS 파일', true],
+    ]) {
+      const button = localizedElement('button', label);
+      button.setAttribute('aria-pressed', String(opfs === persistent));
+      button.addEventListener('click', () => {
+        if (opfs === persistent) return;
+        const url = new URL(location.href);
+        url.search = search(mode, opfs);
+        url.hash = '';
+        location.assign(url);
+      });
+      storages.append(button);
+    }
+    $('#experiment-actions').append(storages);
   } else {
     const input = element('input', undefined, 'note-input');
     input.id = 'note-input';
@@ -506,7 +593,7 @@ async function connect() {
     document.documentElement.dataset.engineBase,
     location.href,
   );
-  if (mode !== 'memory') {
+  if (engine !== 'memory') {
     if (
       !isSecureContext ||
       !navigator.storage?.getDirectory ||
@@ -522,19 +609,19 @@ async function connect() {
   }
   const module = await import(
     new URL(
-      mode === 'memory'
+      engine === 'memory'
         ? 'gluesql.js'
-        : mode === 'shared'
+        : engine === 'shared'
           ? 'gluesql.opfs.shared.js'
           : 'gluesql.opfs.js',
       engineBase,
     )
   );
-  if (mode === 'memory') db = await module.gluesql();
+  if (engine === 'memory') db = await module.gluesql();
   else {
     db = module.gluesql({ namespace });
     // After a reload the old exclusive handle may need a moment to be released.
-    if (mode === 'opfs') {
+    if (engine === 'opfs') {
       for (let attempt = 0; ; attempt++) {
         try {
           await db.query('SELECT 1;');
@@ -551,23 +638,9 @@ async function connect() {
     }
   }
   if (mode === 'memory') {
-    // Sample data stays in English regardless of the interface language.
-    await db.query(`
-      CREATE TABLE Contribution (pr INTEGER, title TEXT, area TEXT);
-      INSERT INTO Contribution VALUES
-        (13, 'Worker-based OPFS entry point', 'Worker'),
-        (15, 'Worker proxy browser tests', 'Testing'),
-        (16, 'redb-based OPFS storage', 'Storage'),
-        (17, 'OPFS npm packaging', 'Package'),
-        (19, 'OPFS examples and tests', 'Testing'),
-        (21, 'Multi-tab sharing and failover', 'Storage');
-      CREATE TABLE Area (name TEXT, description TEXT);
-      INSERT INTO Area VALUES
-        ('Worker', 'Run SQL outside the UI thread'),
-        ('Testing', 'Verify behavior in the browser'),
-        ('Storage', 'File persistence and sharing'),
-        ('Package', 'Install and start using');
-    `);
+    // Seed an OPFS playground only while it is empty: a reload must keep the visitor's rows.
+    if (!persistent || !(await db.query('SHOW TABLES;'))[0].tables?.length)
+      await db.query(sampleData);
   } else {
     await db.query(
       'CREATE TABLE IF NOT EXISTS Note (id TEXT PRIMARY KEY, author TEXT, message TEXT, created_at TEXT);',
@@ -646,7 +719,7 @@ $('#share').addEventListener('click', async () => {
     return;
   }
   const url = new URL(location.href);
-  url.search = new URLSearchParams({ mode }).toString();
+  url.search = search(mode, persistent);
   url.hash = new URLSearchParams({ sql: $('#sql').value }).toString();
   try {
     await navigator.clipboard.writeText(url.href);
@@ -688,7 +761,7 @@ connect().catch(async (error) => {
   notice('연결 실패: {error}{hint}', true, () => ({
     error: t(String(error.message ?? error)),
     hint:
-      mode === 'opfs'
+      engine === 'opfs'
         ? t(
             ' 같은 실험을 연 다른 탭이 있다면 닫고 새로고침하거나 멀티탭 실험을 선택해주세요.',
           )

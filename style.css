@@ -533,6 +533,37 @@ h1 {
   font-weight: 550;
   min-height: 34px;
 }
+.storage-switch {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  font-size: 11px;
+}
+.storage-switch span {
+  color: var(--muted);
+  margin-right: 8px;
+}
+.storage-switch button {
+  font-size: inherit;
+  border: 1px solid #dce3ef;
+  padding: 8px 12px;
+  background: white;
+  font-weight: 550;
+  min-height: 34px;
+}
+.storage-switch button:first-of-type {
+  border-radius: 6px 0 0 6px;
+}
+.storage-switch button:last-of-type {
+  border-radius: 0 6px 6px 0;
+  margin-left: -1px;
+}
+.storage-switch button[aria-pressed='true'] {
+  position: relative;
+  border-color: var(--blue);
+  background: var(--blue-wash);
+  color: var(--blue);
+}
 .note-input {
   border: 1px solid #dce3ef;
   border-radius: 6px;
@@ -1487,7 +1518,8 @@ footer {
   .connection {
     font-size: 9px;
   }
-  .secondary-button {
+  .secondary-button,
+  .storage-switch {
     font-size: 10px;
   }
   .note-input {
